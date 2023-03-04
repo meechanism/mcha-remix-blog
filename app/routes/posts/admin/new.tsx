@@ -1,6 +1,6 @@
 import { Form } from "@remix-run/react";
+import { json, redirect } from "@remix-run/node";
 import type { ActionArgs } from "@remix-run/node";
-import { redirect } from "@remix-run/node";
 import { createPost } from "~/models/post.server";
 
 const inputClassName = `w-full rounded border border-gray-500 px-2 py-1 text-lg`;
@@ -11,6 +11,18 @@ export const action = async ({ request }: ActionArgs) => {
   const title = formData.get("title");
   const slug = formData.get("slug");
   const markdown = formData.get("markdown");
+
+  const errors = {
+    title: title ? null : "Title is required",
+    slug: slug ? null : "Slug is required",
+    markdown: markdown ? null : "Markdown is required",
+  };
+
+  const hasErrors = Object.values(errors).some((errorMessage) => errorMessage);
+
+  if (hasErrors) {
+    return json(errors);
+  }
 
   await createPost({ title, slug, markdown });
 
