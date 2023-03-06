@@ -1,7 +1,8 @@
-import { Form } from "@remix-run/react";
+import { Form, useActionData } from "@remix-run/react";
 import { json, redirect } from "@remix-run/node";
 import type { ActionArgs } from "@remix-run/node";
 import { createPost } from "~/models/post.server";
+import invariant from "tiny-invariant";
 
 const inputClassName = `w-full rounded border border-gray-500 px-2 py-1 text-lg`;
 
@@ -24,28 +25,42 @@ export const action = async ({ request }: ActionArgs) => {
     return json(errors);
   }
 
+  invariant(typeof title === "string", "title must be a string");
+  invariant(typeof slug === "string", "slug must be a string");
+  invariant(typeof markdown === "string", "markdown must be a string");
+
   await createPost({ title, slug, markdown });
 
   return redirect("/posts/admin");
 };
 
 export default function NewPost() {
+  const errors = useActionData<typeof action>();
   return (
     <Form method="post">
       <p>
         <label>
           Post Title:{" "}
+          {errors?.title ? (
+            <em className="text-red-600">{errors.title}</em>
+          ) : null}
           <input type="text" name="title" className={inputClassName} />
         </label>
       </p>
       <p>
         <label>
           Post Slug:{" "}
+          {errors?.slug ? (
+            <em className="text-red-600">{errors.slug}</em>
+          ) : null}
           <input type="text" name="slug" className={inputClassName} />
         </label>
       </p>
       <p>
         <label htmlFor="markdown">Markdown:</label>
+        {errors?.markdown ? (
+          <em className="text-red-600">{errors.markdown}</em>
+        ) : null}
         <br />
         <textarea
           id="markdown"
